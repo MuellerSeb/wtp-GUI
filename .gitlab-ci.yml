@@ -1,0 +1,99 @@
+image: python:3.11
+
+stages:
+  - test
+  - build
+  - docs
+  - deploy
+  - release
+
+check:
+  stage: test
+  before_script:
+    - pip3 install black 'pylint<3' 'isort[colors]<6'
+  script:
+    - pip3 install --editable .
+    - black --check --diff --color .
+    - isort --check --diff --color .
+    - pylint src/finam_vtk
+
+test:
+  stage: test
+  script:
+    - pip3 install --editable .[test]
+    - python -m pytest --cov finam_vtk --cov-report term-missing --cov-report html:cov --cov-report xml:cov.xml -v tests/
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: cov.xml
+    paths:
+      - cov
+
+doctest:
+  stage: test
+  script:
+    - pip3 install --editable .[doc]
+    # doctest does not detect tests in code files during the first run.
+    # add a dummy build to generate .rst files before the actual tests
+    - sphinx-build -b dummy docs/source docs/build
+    - sphinx-build -b doctest docs/source docs/build
+
+build:
+  stage: build
+  variables:
+    GIT_STRATEGY: clone
+    GIT_DEPTH: 0  # to have all tags
+  script:
+    - pip install build
+    - python -m build
+  artifacts:
+    paths:
+      - dist
+
+documentation:
+  stage: docs
+  script:
+    - pip3 install --editable .[doc]
+    - sphinx-build docs/source docs/build
+    - mv docs/build public/
+  artifacts:
+    paths:
+      - public
+
+pages:
+  stage: deploy
+  script: "true"
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
+
+pypi_test_release:
+  stage: release
+  dependencies:
+    - build
+  script:
+    - pip install twine
+    - python -m twine upload --skip-existing -r testpypi -u __token__ -p ${TEST_PYPI_TOKEN} dist/*
+  artifacts:
+    paths:
+      - dist
+  only:
+    - main
+    - tags
+
+pypi_release:
+  stage: release
+  dependencies:
+    - build
+  script:
+    - pip install twine
+    - python -m twine upload -u __token__ -p ${PYPI_TOKEN} dist/*
+  artifacts:
+    paths:
+      - dist
+  only:
+    - tags

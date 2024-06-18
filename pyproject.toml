@@ -1,0 +1,155 @@
+[build-system]
+requires = [
+    "hatchling>=1.8.0",
+    "hatch-vcs",
+]
+build-backend = "hatchling.build"
+
+[project]
+requires-python = ">=3.8"
+name = "wtp_gui"
+description = "Flet based GUI for welltestpy."
+authors = [{name = "Sebastian Müller", email = "info@geostat-framework.org"}]
+readme = "README.md"
+license = "MIT"
+dynamic = ["version"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Natural Language :: English",
+    "Operating System :: Unix",
+    "Operating System :: Microsoft",
+    "Operating System :: MacOS",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "flet",
+    "welltestpy",
+    "matplotx",
+]
+
+[project.urls]
+Source = "https://github.com/MuellerSeb/wtp-GUI"
+
+[project.optional-dependencies]
+doc = [
+    "sphinx>=6",
+    "pydata-sphinx-theme>=0.13,<0.14",
+    "numpydoc>=1.1",
+    "sphinx-design>=0.4",
+    "myst-parser>=1.0",
+    "docutils>=0.18", # mdinclude with myst
+]
+test = ["pytest-cov>=3"]
+check = [
+  "black>=24,<25",
+  "isort[colors]",
+  "ruff>=0.4,<0.5",
+]
+
+[project.scripts]
+wtp-gui = "wtp_gui:gui"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.version]
+source = "vcs"
+fallback_version = "0.0.0.dev0"
+
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/wtp_gui/_version.py"
+template = "__version__ = '{version}'"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src",
+  "/tests",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/wtp_gui"]
+
+[tool.black]
+exclude = "_version.py"
+target-version = ["py38"]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.coverage]
+[tool.coverage.run]
+source = ["wtp_gui"]
+omit = [
+    "*docs*",
+    "*examples*",
+    "*tests*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+]
+
+[tool.pylint]
+[tool.pylint.master]
+extension-pkg-whitelist = [
+    "numpy",
+    "scipy",
+]
+ignore = [
+    "_version.py",
+]
+
+[tool.ruff.lint]
+select = [
+  "E", "F", "W", # flake8
+  "B",  "B904",  # flake8-bugbear
+  "I",           # isort
+  "ARG",         # flake8-unused-arguments
+  "C4",          # flake8-comprehensions
+  "EM",          # flake8-errmsg
+  "ICN",         # flake8-import-conventions
+  "ISC",         # flake8-implicit-str-concat
+  "PGH",         # pygrep-hooks
+  "PIE",         # flake8-pie
+  "PL",          # pylint
+  "PT",          # flake8-pytest-style
+  "PTH",         # flake8-use-pathlib
+  "RET",         # flake8-return
+  "RUF",         # Ruff-specific
+  "SIM",         # flake8-simplify
+  "T20",         # flake8-print
+  "UP",          # pyupgrade
+  "YTT",         # flake8-2020
+  "D",           # pydocstyle
+]
+ignore = [
+  "E501",    # line to long (black decides)
+  "PLR2004", # magic values as constant
+]
+
+[tool.ruff.lint.pylint]
+max-args = 15
+max-branches = 20
+max-statements = 80
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
